@@ -76,6 +76,8 @@ parser.add_argument('--resnet', type=str, default='101', metavar='B',
 parser.add_argument('--load_network_path', type=str, default='',
                     help='whether load saved network')
 parser.add_argument('--validation_method', type=str, choices=['Source_Risk', 'Dev', 'Dev_icml'])
+parser.add_argument('--saveacc', type=str, default='', metavar='B',
+                    help='directory of accuracy files')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -84,7 +86,7 @@ val_path = args.val_path
 num_k = args.num_k
 num_layer = args.num_layer
 batch_size = args.batch_size
-save_path = args.save+'_'+str(args.num_k)
+save_path = args.save+'_'+str(args.lr)+'_'+str(args.num_k)
 
 data_transforms = {
     train_path: transforms.Compose([
@@ -147,6 +149,14 @@ elif args.optimizer == 'adam':
 else:
     optimizer_g = optim.Adadelta(G.features.parameters(),lr=args.lr,weight_decay=0.0005)
     optimizer_f = optim.Adadelta(list(F1.parameters())+list(F2.parameters()),lr=args.lr,weight_decay=0.0005)    
+
+if test_load==False:
+   os.mkdir(args.saveacc)
+   f=open(args.saveacc+'/acc_val.txt', 'a+')
+else:
+   if os.path.exists(args.saveacc+'2')==False:
+      os.mkdir(args.saveacc+'2')
+   f=open(args.saveacc+'2/acc_val.txt', 'a+')  
     
 def train(num_epoch, option, num_layer, test_load, cuda):
     criterion = nn.CrossEntropyLoss().cuda()
@@ -305,6 +315,8 @@ def train(num_epoch, option, num_layer, test_load, cuda):
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%) ({:.0f}%)\n'.format(
             test_loss, correct, size,
             100. * correct / size, 100. * correct2 / size))
+        acc=100. * correct / size
+        f.write('Accuracy is:'+str(acc)+'%'+'\n')
         value = max(100. * correct / size, 100. * correct2 / size)
         print("Value: {}".format(value))
         if args.cuda:
@@ -500,6 +512,7 @@ def train(num_epoch, option, num_layer, test_load, cuda):
             #     #                     os.path.join(save_path, 'val_feature_de.npy'))
             #     # cv_loss = cross_val_loss + dev.get_dev_risk(weight, error) / class_num
         print(cv_loss)
+        f.write(args.validation_method+' Validation is:'+str(cv_loss)+'\n')
 
 def test(epoch):
     G.eval()
@@ -539,6 +552,8 @@ def test(epoch):
         test_loss, correct, size,
         100. * correct / size,100.*correct2/size))
     # if 100. * correct / size > 67 or 100. * correct2 / size > 67:
+    acc=100. * correct / size
+    f.write('ep is'+str(ep)+' Accuracy is:'+str(acc)+'%'+'\n')
     value = max(100. * correct / size,100. * correct2 / size)
     if not val and value > 60:
         # torch.save(F1.state_dict(), save_path+'_'+args.resnet+'_'+str(value)+'_'+'F1.pth')
@@ -555,3 +570,4 @@ def test(epoch):
 
 #for epoch in range(1, args.epochs + 1):
 train(args.epochs+1, option, num_layer, test_load, args.cuda)
+f.close()
