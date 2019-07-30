@@ -399,7 +399,7 @@ def test(epoch):
         100. * correct / size,100.*correct2/size))
     # if 100. * correct / size > 67 or 100. * correct2 / size > 67:
     acc=100. * correct / size
-    f.write('ep is'+str(ep)+' Accuracy is:'+str(acc)+'%'+'\n')
+    f.write('ep is'+str(epoch)+' Accuracy is:'+str(acc)+'%'+'\n')
     value = max(100. * correct / size,100. * correct2 / size)
     if not val and value > 60:
         # torch.save(F1.state_dict(), save_path+'_'+args.resnet+'_'+str(value)+'_'+'F1.pth')
