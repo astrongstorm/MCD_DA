@@ -110,6 +110,9 @@ def get_weight(source_feature_path, target_feature_path,
                 label_y = label_for_test.detach().cpu().numpy()
                 accuracy = sum(pred_y == label_y) / label_y.size
                 print("Accuracy is {}".format(accuracy))
+        if not os.path.exists(source_feature_path.split("/")[0] + "/MLP_weight/"):
+            os.makedirs(source_feature_path.split("/")[0] + "/MLP_weight/")
+        pre_path = source_feature_path.split("/")[0] + "/MLP_weight/" + "MLP" + str(accuracy)
         pre_path = "MLP" + str(accuracy)
         path = pre_path.replace(".", "_") + ".pth"
         torch.save(MLP, path)
@@ -411,6 +414,9 @@ def cross_validation_loss(args, feature_network_path, predict_network_path, num_
         print("Created error shape: {}".format(error.shape))
         print("Created feature: {}".format(val_feature_de.shape))
         # calculating the weight and the score for each class
+
+        if not os.path.exists(args.save.split("/")[0] + "/feature_np/"):
+            os.makedirs(args.save.split("/")[0] + "/feature_np/")
 
         np.save(args.save.split("/")[0]+ "/feature_np/" + str(cls) + "_" + "src_feature_de.npy", src_feature_de)
         np.save(args.save.split("/")[0]+ "/feature_np/" + str(cls) + "_" + "tar_feature_de.npy", tar_feature_de)
